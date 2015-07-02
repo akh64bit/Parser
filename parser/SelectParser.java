@@ -212,4 +212,9 @@ public class SelectParser
 			return false;
 		return true;
 	}
+	public static void main(String[] args) 
+	{
+		SelectParser parser = new SelectParser();
+		System.out.println(parser.parse_select());
+	}
 }

@@ -8,7 +8,8 @@ public enum Token
 			"<="), VARCHAR("VARCHAR"), SDO_GEOM("SDO_GEOM"), INTEGER("INTEGER"), REAL(
 			"REAL"), VALUES("VALUES"), VAL("VAL"), ID("ID"), WHERE("WHERE"), AREA("SDO_GEOM.SDO_AREA"),
 			DISTANCE("SDO_GEOM.SDO_DISTANCE"), INTERSECTION("SDO_GEOM.SDO_INTERSECTION"), SEMICOLON(";"),
-			COMMA(","), LPAREN("("), RPAREN(")"), AND("AND"), OR("OR");
+			COMMA(","), LPAREN("("), RPAREN(")"), AND("AND"), OR("OR"), ON("ON"), INDEX("INDEX"), SDO_GEOMV1("SDO_GEOMETRY"),
+			INDEXTYPE("INDEXTYPE"), IS("IS"), SPATIAL_INDEX("MDSYS.SPATIAL_INDEX");
 	private String token;
 	private Token(String token) 
 	{
@@ -26,17 +27,29 @@ public enum Token
 	{ // implement own valueOf like method for force pattern match of = or other reserved tokens
 		switch (token) 
 		{
+		case "ON":
+			return Token.ON;
+		case "MDSYS.SPATIAL_INDEX":
+			return Token.SPATIAL_INDEX;
+		case "IS":
+			return Token.IS;
+		case "INDEXTYPE":
+			return Token.INDEXTYPE;
+		case "SDO_GEOMETRY":
+			return Token.SDO_GEOMV1;
 		case "CREATE":
 			return Token.CREATE;
-                case "TABLE":
+		case "TABLE":
 			return Token.TABLE;
-                case "INSERT":
+		case "INDEX":
+			return Token.INDEX;
+		case "INSERT":
 			return Token.INSERT;
-                case "INTO":
+		case "INTO":
 			return Token.INTO;
-                case "VALUES":
+		case "VALUES":
 			return Token.VALUES;                    
-                case "AND":
+		case "AND":
 			return Token.AND;
 		case "OR":
 			return Token.OR;
@@ -85,7 +98,7 @@ public enum Token
 	private static Token checkValOrId(String token) 
 	{
 		Token tok=null;
-		if (token.matches("[A-z]+(.[A-z]+)?")) 
+		if (token.matches("[A-z]+(.[A-z]+)?") || token.matches("^[A-z]+([0-9]|[A-z])*(.[A-z]+([0-9]|[A-z])*)?")) 
 		{
 			tok = Token.ID;
 		}

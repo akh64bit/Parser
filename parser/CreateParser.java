@@ -3,7 +3,6 @@ package parser;
 import tokenizer.Token;
 import tokenizer.Tokenizer;
 
-//Comment Entry
 public class CreateParser 
 {
 	private final Tokenizer tokenizer;
@@ -12,53 +11,137 @@ public class CreateParser
 	{
 		tokenizer = Tokenizer.getInstance();
 	}
-        
-	
-        public boolean parse_create()
+	public void readInput()
 	{
 		ttype = tokenizer.getToken();
+//		System.out.println(tokenizer.getTokenValue());
+	}
+	public void unget()
+	{
+		tokenizer.ungetToken();
+	}
+	public boolean parse_create()
+	{
+		readInput();
 		if(!ttype.equals(Token.CREATE))
 			return false;
-                ttype = tokenizer.getToken();
-                if(!ttype.equals(Token.TABLE))
+		if(!choice())
 			return false;
-                ttype = tokenizer.getToken();
-                if(!ttype.equals(Token.ID))
+		readInput();
+		if(!ttype.equals(Token.SEMICOLON))
 			return false;
-                ttype = tokenizer.getToken();
-                if(!ttype.equals(Token.LPAREN))
-			return false;
-		if(!col_decl_list())
-			return false;
-		ttype = tokenizer.getToken();
-		if(!ttype.equals(Token.RPAREN))
-			return false;                
-                
 		return true;
 	}
-	public boolean col_decl_list()
+	public boolean choice()
 	{
-		ttype = tokenizer.getToken();
-		if(ttype.equals(Token.ID))
-                {
-                    ttype = tokenizer.getToken();
-                    if(ttype.equals(Token.INTEGER) || ttype.equals(Token.REAL) || ttype.equals(Token.VARCHAR) || ttype.equals(Token.SDO_GEOM))
-                    {
-                        ttype = tokenizer.getToken();
-                        if(ttype.equals(Token.COMMA))
-                        {
-                            if(!col_decl_list())
-                                return false;
-                        }
-                        else
-                            tokenizer.ungetToken();
-                        return true;
-                    }
-                    else
-                        return false;
-                }
+		readInput();
+		if(ttype.equals(Token.TABLE))
+			return parse_table();
+		else if(ttype.equals(Token.INDEX))
+			return parse_index();
+		return false;
+	}
+	public boolean parse_table()
+	{
+		readInput();
+		if(!ttype.equals(Token.ID))
+			return false;
+		readInput();
+		if(!ttype.equals(Token.LPAREN))
+			return false;
+		if(!col_list())
+			return false;
+		readInput();
+		if(!ttype.equals(Token.RPAREN))
+			return false;
+		return true;
+	}
+	public boolean col_list()
+	{
+		if(!pair())
+			return false;
+		readInput();
+		if(ttype.equals(Token.COMMA))
+			return col_list();
 		else
-                    return false;
-		///return true;
+			unget();
+		return true;
+	}
+	public boolean pair()
+	{
+		readInput();
+		if(!ttype.equals(Token.ID))
+			return false;
+		return type();
+	}
+	public boolean type()
+	{
+		readInput();
+		if(ttype.equals(Token.VARCHAR))
+		{
+			unget();
+			return varchar();
+		}
+		else if(!(ttype.equals(Token.INTEGER) || ttype.equals(Token.REAL) || ttype.equals(Token.SDO_GEOMV1)))
+			return false;
+		return true;
+	}
+	public boolean varchar()
+	{
+		readInput();
+		if(!ttype.equals(Token.VARCHAR))
+			return false;
+		readInput();
+		if(!ttype.equals(Token.LPAREN))
+			return false;
+		readInput();
+		if(!ttype.equals(Token.VAL))
+			return false;
+		readInput();
+		if(!ttype.equals(Token.RPAREN))
+			return false;
+		return true;
+	}
+	public boolean parse_index()
+	{
+		readInput();
+		if(!ttype.equals(Token.ID))
+			return false;
+		readInput();
+		if(!ttype.equals(Token.ON))
+			return false;
+		if(!index_column())
+			return false;
+		readInput();
+		if(!ttype.equals(Token.INDEXTYPE))
+			return false;
+		readInput();
+		if(!ttype.equals(Token.IS))
+			return false;
+		readInput();
+		if(!ttype.equals(Token.SPATIAL_INDEX))
+			return false;
+		return true;
+	}
+	public boolean index_column()
+	{
+		readInput();
+		if(!ttype.equals(Token.ID))
+			return false;
+		readInput();
+		if(!ttype.equals(Token.LPAREN))
+			return false;
+		readInput();
+		if(!ttype.equals(Token.ID))
+			return false;
+		readInput();
+		if(!ttype.equals(Token.RPAREN))
+			return false;
+		return true;
+	}
+	public static void main(String[] args) 
+	{
+		CreateParser parser = new CreateParser();
+		System.out.println(parser.parse_create());
 	}
 }
