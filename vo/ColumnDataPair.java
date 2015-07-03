@@ -6,7 +6,6 @@ public class ColumnDataPair
 	private String columnName;
 	public ColumnDataPair(DataType dataType, String columnName) 
 	{
-		super();
 		this.dataType = dataType;
 		this.columnName = columnName;
 	}
@@ -25,5 +24,12 @@ public class ColumnDataPair
 	public void setColumnName(String columnName) 
 	{
 		this.columnName = columnName;
+	}
+	public String toString()
+	{
+		StringBuilder b = new StringBuilder();
+		b.append("Column Name: ").append(columnName).append("\n");
+		b.append(dataType.toString());
+		return b.toString();
 	}
 }

@@ -3,36 +3,38 @@ package parser;
 import tokenizer.Token;
 import tokenizer.Tokenizer;
 import vo.CreateQuery;
-import vo.Query;
 import vo.ColumnDataPair;
 import vo.DataType;
-import vo.DataTypeName;
 import java.util.ArrayList; 
-
 
 public class CreateParser 
 {
 	private final Tokenizer tokenizer;
 	private Token ttype;
-        private CreateQuery createQuery;
+	private CreateQuery createQuery;
+	private ArrayList<ColumnDataPair> list;
+	public CreateQuery getQueryValues()
+	{
+		return createQuery;
+	}
 	public CreateParser()
 	{
 		tokenizer = Tokenizer.getInstance();
-                
+		createQuery = new CreateQuery();
 	}
 	public void readInput()
 	{
 		ttype = tokenizer.getToken();
-//		System.out.println(tokenizer.getTokenValue());
+		//System.out.println(tokenizer.getTokenValue());
 	}
 	public void unget()
 	{
 		tokenizer.ungetToken();
 	}
-        public String getTokenVal()
-        {
-            return tokenizer.getTokenValue();
-        }
+	public String getTokenVal()
+	{
+		return tokenizer.getTokenValue();
+	}
 	public boolean parse_create()
 	{
 		readInput();
@@ -43,88 +45,76 @@ public class CreateParser
 		readInput();
 		if(!ttype.equals(Token.SEMICOLON))
 			return false;
-                System.out.println("Table :" + createQuery.getTableName());
-                createQuery.getColumnDataPair();
 		return true;
 	}
 	public boolean choice()
 	{
 		readInput();
 		if(ttype.equals(Token.TABLE))
-                    return parse_table();
+			return parse_table();
 		else if(ttype.equals(Token.INDEX))
 			return parse_index();
 		return false;
 	}
 	public boolean parse_table()
 	{
+		createQuery.setObjectType(CreateQuery.TABLE);
+		list = new ArrayList<ColumnDataPair>();
+		createQuery.setColumnDataPair(list);
 		readInput();
 		if(!ttype.equals(Token.ID))
 			return false;
-                else
-                    createQuery = new CreateQuery(getTokenVal(), new ArrayList<ColumnDataPair>());
+		createQuery.setTableName(getTokenVal());
 		readInput();
 		if(!ttype.equals(Token.LPAREN))
 			return false;
-                ArrayList<ColumnDataPair> list = new ArrayList<ColumnDataPair>();
-		if(!col_list(list))
-                    return false;
+		if(!col_list())
+			return false;
 		readInput();
 		if(!ttype.equals(Token.RPAREN))
 			return false;
 		return true;
-                
+
 	}
-	public boolean col_list(ArrayList<ColumnDataPair> list)
+	public boolean col_list()
 	{
-            ColumnDataPair columnDataPair = null;
-            if(!pair(columnDataPair))
-		return false;
-            else
-            {
-                list.add(columnDataPair);
-            }
-            readInput();
-            if(ttype.equals(Token.COMMA))
-		return col_list(list);
-            else
-		unget();
-            return true;
+		if(!pair())
+			return false;
+		readInput();
+		if(ttype.equals(Token.COMMA))
+			return col_list();
+		else
+			unget();
+		return true;
 	}
-	public boolean pair(ColumnDataPair columnDataPair)
+	public boolean pair()
 	{
 		readInput();
-                
 		if(!ttype.equals(Token.ID))
 			return false;
-                
-                columnDataPair = new ColumnDataPair( null, getTokenVal());// don't have the type yet! will be set in the type method!!
+		ColumnDataPair columnDataPair = new ColumnDataPair(new DataType(), getTokenVal());// don't have the type yet! will be set in the type method!!
 		return type(columnDataPair);
 	}
 	public boolean type(ColumnDataPair columnDataPair)
 	{
 		readInput();
-                
-                DataType dt = new DataType();                        
-                columnDataPair.setDataType(dt);                
-                
+		DataType dt = columnDataPair.getDataType();
 		if(ttype.equals(Token.VARCHAR))
 		{
 			unget();     
-                        dt.setName(DataTypeName.VARCHAR);
-			return varchar(dt);
+			dt.setName(DataType.VARCHAR);
+			if(!varchar(dt))
+				return false;
 		}
-		else if(!(ttype.equals(Token.INTEGER) || ttype.equals(Token.REAL) || ttype.equals(Token.SDO_GEOMV1)))
+		else if(ttype.equals(Token.INTEGER))
+			dt.setName(DataType.INTEGER);
+		else if(ttype.equals(Token.REAL))
+			dt.setName(DataType.REAL);
+		else if(ttype.equals(Token.SDO_GEOM) || ttype.equals(Token.SDO_GEOMV1))
+			dt.setName(DataType.SDO_GEOM);
+		else
 			return false;
-                else
-                {
-                    if(ttype.equals(Token.INTEGER))
-                        dt.setName(DataTypeName.INTEGER);
-                    else if(ttype.equals(Token.REAL))
-                        dt.setName(DataTypeName.REAL);
-                    else if(ttype.equals(Token.SDO_GEOMV1))
-                        dt.setName(DataTypeName.SDO_GEOM);
-                }
+		list.add(columnDataPair);
 		return true;
 	}
 	public boolean varchar(DataType dt)
@@ -138,11 +128,17 @@ public class CreateParser
 		readInput();
 		if(!ttype.equals(Token.VAL))
 			return false;
-                else
-                {
-                    int sz = Integer.parseInt(getTokenVal());
-                    dt.setSize(sz);
-                }
+		else
+		{
+			try
+			{
+				dt.setSize(Integer.parseInt(getTokenVal()));
+			}
+			catch(Exception e)
+			{
+				return false;
+			}
+		}
 		readInput();
 		if(!ttype.equals(Token.RPAREN))
 			return false;
@@ -150,16 +146,15 @@ public class CreateParser
 	}
 	public boolean parse_index()
 	{
+		createQuery.setObjectType(CreateQuery.INDEX);
 		readInput();
-                String indexName;
 		if(!ttype.equals(Token.ID))
 			return false;
-                else
-                    indexName=getTokenVal();
+		createQuery.setIndexName(getTokenVal());
 		readInput();
 		if(!ttype.equals(Token.ON))
 			return false;
-		if(!index_column(indexName))
+		if(!index_column())
 			return false;
 		readInput();
 		if(!ttype.equals(Token.INDEXTYPE))
@@ -172,23 +167,19 @@ public class CreateParser
 			return false;
 		return true;
 	}
-	public boolean index_column(String indexName)
+	public boolean index_column()
 	{
 		readInput();
-                String tableName;
 		if(!ttype.equals(Token.ID))
 			return false;
-                else
-                    tableName=getTokenVal();
+		createQuery.setTableName(getTokenVal());
 		readInput();
 		if(!ttype.equals(Token.LPAREN))
 			return false;
 		readInput();
 		if(!ttype.equals(Token.ID))
 			return false;
-                else
-                    createQuery = new CreateQuery(indexName, tableName, getTokenVal());
-                
+		createQuery.setIndexCol(getTokenVal());
 		readInput();
 		if(!ttype.equals(Token.RPAREN))
 			return false;
@@ -197,7 +188,9 @@ public class CreateParser
 	public static void main(String[] args) 
 	{
 		CreateParser parser = new CreateParser();
-		System.out.println(parser.parse_create());
-                System.out.println();
+		boolean result = parser.parse_create();
+		System.out.println(result?"Correct Syntax":"Syntax Error");
+		if(result)
+			parser.createQuery.display();
 	}
 }

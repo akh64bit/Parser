@@ -1,6 +1,6 @@
 package tokenizer;
 
-public enum Token 
+public enum Token
 {
 	EQUAL_TO("="), SELECT("SELECT"), FROM("FROM"), CREATE(
 			"CREATE"), TABLE("TABLE"), INSERT("INSERT"), INTO("INTO"), NOT_EQUAL_TO(
@@ -9,7 +9,7 @@ public enum Token
 			"REAL"), VALUES("VALUES"), VAL("VAL"), ID("ID"), WHERE("WHERE"), AREA("SDO_GEOM.SDO_AREA"),
 			DISTANCE("SDO_GEOM.SDO_DISTANCE"), INTERSECTION("SDO_GEOM.SDO_INTERSECTION"), SEMICOLON(";"),
 			COMMA(","), LPAREN("("), RPAREN(")"), AND("AND"), OR("OR"), ON("ON"), INDEX("INDEX"), SDO_GEOMV1("SDO_GEOMETRY"),
-			INDEXTYPE("INDEXTYPE"), IS("IS"), SPATIAL_INDEX("MDSYS.SPATIAL_INDEX");
+			INDEXTYPE("INDEXTYPE"), IS("IS"), SPATIAL_INDEX("MDSYS.SPATIAL_INDEX"), EXIT("EXIT");
 	private String token;
 	private Token(String token) 
 	{
@@ -27,6 +27,8 @@ public enum Token
 	{ // implement own valueOf like method for force pattern match of = or other reserved tokens
 		switch (token) 
 		{
+		case "EXIT":
+			return Token.EXIT;
 		case "ON":
 			return Token.ON;
 		case "MDSYS.SPATIAL_INDEX":

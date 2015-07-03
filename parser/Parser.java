@@ -5,39 +5,69 @@ import tokenizer.Tokenizer;
 
 public class Parser 
 {
-	private static CreateParser createParser;
-	private static InsertParser insertParser;
-	private static SelectParser selectParser;
-	private static Tokenizer tokenizer;
-	private static Token ttype;
+	private CreateParser createParser;
+	private InsertParser insertParser;
+	private SelectParser selectParser;
+	private Tokenizer tokenizer;
+	private Token ttype;
 	public Parser()
 	{
 		tokenizer = Tokenizer.getInstance();
 	}
-	public boolean parse_sql()
+	public void parse_sql()
 	{
-		ttype = tokenizer.getToken();
-		switch(ttype)
+		boolean flag = true;
+		while(flag)
 		{
-		case CREATE:
-			tokenizer.ungetToken();
-			createParser = new CreateParser();
-			return createParser.parse_create();
-		case INSERT:
-			tokenizer.ungetToken();
-			insertParser = new InsertParser();
-			return insertParser.parse_insert();
-		case SELECT:
-			tokenizer.ungetToken();
-			selectParser = new SelectParser();
-			return selectParser.parse_select();
-		default:
-			System.out.println("Invalid query: Supported queries are CREATE TABLE, SELECT, INSERT.");
-			return false;
+			boolean result = false;
+			System.out.println("=======================================");
+			System.out.println("Please enter a query ('EXIT' to finish)");
+			ttype = tokenizer.getToken();
+			switch(ttype)
+			{
+			case CREATE:
+			{
+				tokenizer.ungetToken();
+				createParser = new CreateParser();
+				result = createParser.parse_create();
+				System.out.println(result?"Result: Correct Syntax":"Result: Syntax Error");
+				if(result)
+					createParser.getQueryValues().display();
+			}
+			break;
+			case INSERT:
+			{
+				tokenizer.ungetToken();
+				insertParser = new InsertParser();
+				result = insertParser.parse_insert();
+				System.out.println(result?"Result: Correct Syntax":"Result: Syntax Error");
+				if(result)
+					insertParser.getQueryValues().display();
+			}
+			break;
+			case SELECT:
+			{
+				tokenizer.ungetToken();
+				selectParser = new SelectParser();
+				result = selectParser.parse_select();
+				System.out.println(result?"Result: Correct Syntax":"Result: Syntax Error");
+				if(result)
+					selectParser.getQueryValues().display();
+			}
+			break;
+			case EXIT:
+			{
+				flag = false;
+			}
+			break;
+			default:
+				System.out.println("Invalid query: Supported queries are CREATE TABLE, SELECT, INSERT.");
+			}
 		}
 	}
 	public static void main(String[] args) 
 	{
-		System.out.println(new Parser().parse_sql());
+		Parser p = new Parser();
+		p.parse_sql();
 	}
 }

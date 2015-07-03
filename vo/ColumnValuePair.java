@@ -3,10 +3,9 @@ package vo;
 public class ColumnValuePair 
 {
 	private String columnName;
-	private String value;
-	public ColumnValuePair(String columnName, String value) 
+	private InsertValue value;
+	public ColumnValuePair(String columnName, InsertValue value) 
 	{
-		super();
 		this.columnName = columnName;
 		this.value = value;
 	}
@@ -18,12 +17,20 @@ public class ColumnValuePair
 	{
 		this.columnName = columnName;
 	}
-	public String getValue() 
+	public InsertValue getValue() 
 	{
 		return value;
 	}
-	public void setValue(String value) 
+	public void setValue(InsertValue value) 
 	{
 		this.value = value;
+	}
+	public String toString()
+	{
+		StringBuilder b = new StringBuilder();
+		if(columnName != null)
+			b.append("Column Name: ").append(columnName).append(";\n");
+		b.append(value.toString());
+		return b.toString();
 	}
 }

@@ -8,49 +8,41 @@ enum QueryType
 	{
 		name = input;
 	}
-	
-	
+	public String getQueryValue()
+	{
+		return name;
+	}
 }
 public class Query 
 {
-	private QueryType type;
-	
+	public static final String SELECT = "SELECT";
+	public static final String CREATE = "CREATE";
+	public static final String INSERT = "INSERT";
+	private String type;
 	private String tableName;
-
-	public Query(QueryType type, String tableName) {
-		super();
+	public Query(String type, String tableName)
+	{
 		this.type = type;
 		this.tableName = tableName;
 	}
-
-	/**
-	 * @return the type
-	 */
-	public QueryType getType() {
+	public String getType() 
+	{
 		return type;
 	}
-
-	/**
-	 * @param type the type to set
-	 */
-	public void setType(QueryType type) {
+	public void setType(String type) 
+	{
 		this.type = type;
 	}
-
-	/**
-	 * @return the tableName
-	 */
-	public String getTableName() {
+	public String getTableName() 
+	{
 		return tableName;
 	}
-
-	/**
-	 * @param tableName the tableName to set
-	 */
-	public void setTableName(String tableName) {
+	public void setTableName(String tableName) 
+	{
 		this.tableName = tableName;
 	}
-	
-	
-	
+	public void display()
+	{
+		//to be overridden
+	}
 }

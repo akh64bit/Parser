@@ -11,7 +11,7 @@ public class SelectQuery extends Query
 	private List<CondExpr> cond_list;
 	public SelectQuery()
 	{
-		super(QueryType.SELECT, null);
+		super(SELECT, null);
 		select_list = new ArrayList<SelectObj>();
 		cond_list = new ArrayList<CondExpr>();
 		from_list = new ArrayList<FromObj>();
@@ -28,6 +28,7 @@ public class SelectQuery extends Query
 	{
 		from_list.add(obj);
 	}
+	@Override
 	public void display()
 	{
 		System.out.println("Select List: ");

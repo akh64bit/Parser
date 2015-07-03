@@ -21,6 +21,10 @@ public class SelectParser
 		tokenizer = Tokenizer.getInstance();
 		queryVO = new SelectQuery();
 	}
+	public SelectQuery getQueryValues()
+	{
+		return queryVO;
+	}
 	public void readInput()
 	{
 		ttype = tokenizer.getToken();

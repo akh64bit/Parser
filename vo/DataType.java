@@ -2,20 +2,34 @@ package vo;
 
 public class DataType
 {
-	private DataTypeName name;
+	public static final String REAL = "REAL";
+	public static final String VARCHAR = "VARCHAR";
+	public static final String INTEGER = "INTEGER";
+	public static final String SDO_GEOM = "SDO_GEOM";
+	private String name;
 	private int size;
-	public DataTypeName getName()
+	public String getName()
 	{
 		return name;
 	}
-	public void setName(DataTypeName name) {
+	public void setName(String name) 
+	{
 		this.name = name;
 	}
-	public int getSize() {
+	public int getSize() 
+	{
 		return size;
 	}
-	public void setSize(int size) {
+	public void setSize(int size) 
+	{
 		this.size = size;
 	}
+	public String toString()
+	{
+		StringBuilder b = new StringBuilder();
+		b.append("Type Name: ").append(name);
+		if(VARCHAR.equalsIgnoreCase(name))
+			b.append("\nSize: ").append(size);
+		return b.toString();
+	}
 }
-
