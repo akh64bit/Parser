@@ -5,9 +5,9 @@ import java.util.List;
 public class InsertQuery extends Query
 {
 	private List<ColumnValuePair> columnValuePair;
-	public InsertQuery(QueryType type, String tableName, List<ColumnValuePair> columnValuePair) 
+	public InsertQuery(String tableName, List<ColumnValuePair> columnValuePair) 
 	{
-		super(type, tableName);
+		super(QueryType.INSERT, tableName);
 		this.columnValuePair = columnValuePair;
 	}
 	/**
