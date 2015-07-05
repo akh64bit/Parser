@@ -2,8 +2,8 @@ package parser;
 
 import global.AttrOperator;
 import global.AttrType;
-import iterator.sm_join_assign_src.CondExpr;
-import iterator.sm_join_assign_src.Operand;
+import iterator.CondExpr;
+import iterator.Operand;
 import tokenizer.Token;
 import tokenizer.Tokenizer;
 import vo.FromObj;

@@ -1,4 +1,4 @@
-package iterator.sm_join_assign_src;
+package iterator;
 
 import global.*;
 /**
