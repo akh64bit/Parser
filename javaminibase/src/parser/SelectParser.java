@@ -23,7 +23,8 @@ public class SelectParser
 	{
 		tokenizer = Tokenizer.getInstance();
 		queryVO = new SelectQuery();
-                tableOperations = new TableOperations();
+                //tableOperations = new TableOperations();
+                tableOperations = TableOperations.getInstance();
 	}
 	public SelectQuery getQueryValues()
 	{
