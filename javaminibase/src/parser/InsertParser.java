@@ -31,7 +31,8 @@ public class InsertParser
 		insertQuery = new InsertQuery();
 		col_list_provided = false;
 		list = new ArrayList<ColumnValuePair>();
-                tableOperations = new TableOperations();
+                //tableOperations = new TableOperations();
+                tableOperations = TableOperations.getInstance();
 	}
 	public InsertQuery getQueryValues()
 	{
