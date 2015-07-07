@@ -24,7 +24,8 @@ public class CreateParser
 	{
 		tokenizer = Tokenizer.getInstance();
 		createQuery = new CreateQuery();
-                tableOperations = new TableOperations();
+                //tableOperations = new TableOperations();
+                tableOperations = TableOperations.getInstance();
 	}
 	public void readInput()
 	{
