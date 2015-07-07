@@ -4,6 +4,8 @@ import global.AttrOperator;
 import global.AttrType;
 import iterator.CondExpr;
 import iterator.Operand;
+import java.util.List;
+import tests.TableOperations;
 import tokenizer.Token;
 import tokenizer.Tokenizer;
 import vo.FromObj;
@@ -16,10 +18,12 @@ public class SelectParser
 	private Tokenizer tokenizer;
 	private Token ttype;
 	private SelectQuery queryVO;
+        private TableOperations tableOperations;
 	public SelectParser()
 	{
 		tokenizer = Tokenizer.getInstance();
 		queryVO = new SelectQuery();
+                tableOperations = new TableOperations();
 	}
 	public SelectQuery getQueryValues()
 	{
@@ -348,6 +352,17 @@ public class SelectParser
 			return false;
 		return true;
 	}
+        public void printSelectedValues()
+        {
+            List<String> selectionList;
+            //for now hard-coding to print all the records from all the tables in the from list
+            for(FromObj from : getQueryValues().getFromList())
+            {
+                System.out.println("Printing all records from table "+from.getTableName()+"...");
+                tableOperations.select(from.getTableName(), null);
+            
+            }//return selectionList;
+        }
 	public static void main(String[] args) 
 	{
 		boolean result = false;
