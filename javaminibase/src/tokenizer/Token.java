@@ -105,7 +105,7 @@ public enum Token
 			tok = Token.ID;
 		}
 		else if (token.matches("\\d+") || token.matches("\\d+\\.\\d+") ||
-				token.matches("^'[A-z]+(.[A-z]+)?'$") || token.matches("SDO_GEOM\\((\\d+[,]){7}\\d+\\)")) 
+				token.matches("^'([0-9]|[A-z])+(.([0-9]|[A-z])+)?'$") || token.matches("SDO_GEOM\\((\\d+[,]){7}\\d+\\)")) 
 		{
 			tok = Token.VAL;
 		}

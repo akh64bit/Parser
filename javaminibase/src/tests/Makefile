@@ -1,5 +1,5 @@
 # modify the paths appropriately
-JDKPATH = /usr/java/jdk1.3.1_02
+JDKPATH = /usr/lib/jvm/java-8-openjdk-amd64
 LIBPATH = .:..
 CLASSPATH = $(LIBPATH)
 BINPATH = $(JDKPATH)/bin
@@ -70,6 +70,10 @@ SMJoin:SM_JoinTest.java
 sortmerge: SMJoin
 	$(JAVA) tests.SM_JoinTest
 
+# test parseTest
 
+ParseTest:ParseTest.java
+	$(JAVAC) TestDriver.java ParseTest.java
 
-
+parsetest: ParseTest
+	$(JAVA) tests.ParseTest

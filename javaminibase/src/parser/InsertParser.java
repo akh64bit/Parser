@@ -98,7 +98,6 @@ public class InsertParser
 			{
 				ColumnValuePair obj = new ColumnValuePair(colNIterator.next(), temp);
 				list.add(obj);
-                                
 			}
 		}
 		else
@@ -108,7 +107,6 @@ public class InsertParser
 				ColumnValuePair obj = new ColumnValuePair(null, temp);
 				list.add(obj);
 			}
-                        
 		}
 		insertQuery.setColumnValuePair(list);
 		return true;
@@ -154,7 +152,7 @@ public class InsertParser
 			}
 			if(flag)
 			{
-				if(getTokenVal().matches("^'[A-z]+(.[A-z]+)?'$"))
+				if(getTokenVal().matches("^'([0-9]|[A-z])+(.([0-9]|[A-z])+)?'$"))
 				{
 					value.setString(getTokenVal().replace("'",""));
 					value.setValueType(InsertValue.STRING);
@@ -234,8 +232,8 @@ public class InsertParser
         {
             InsertQuery insertQuery = getQueryValues();
             List<ColumnValuePair> listCVP = insertQuery.getColumnValuePair();
-            Map<String, String> mapColValPair = new HashMap();
-            List<String> listVals = new ArrayList();
+            Map<String, String> mapColValPair = new HashMap<String, String>();
+            List<String> listVals = new ArrayList<String>();
             for(ColumnValuePair cvp : listCVP)
             {
                 String value=""; 

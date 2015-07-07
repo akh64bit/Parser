@@ -10,7 +10,7 @@ public class InsertValue
 	private int integer;
 	private String string;
 	private float real;
-	private float coOrdinatees [] = new float [8]; 
+	private int coOrdinatees [] = new int [8]; 
 	public String getValueType() {
 		return valueType;
 	}
@@ -37,9 +37,9 @@ public class InsertValue
 	}
 	public void setCoOrdinates(int position, float value)
 	{
-		coOrdinatees[position] = value;
+		coOrdinatees[position] = (int)value;
 	}
-	public float getCoOrdinates(int position)
+	public int getCoOrdinates(int position)
 	{
 		return coOrdinatees[position];
 	}

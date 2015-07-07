@@ -15,7 +15,7 @@ public class CreateParser
 	private Token ttype;
 	private CreateQuery createQuery;
 	private ArrayList<ColumnDataPair> list;
-        private TableOperations tableOperations;
+	private TableOperations tableOperations;
 	public CreateQuery getQueryValues()
 	{
 		return createQuery;
@@ -24,8 +24,8 @@ public class CreateParser
 	{
 		tokenizer = Tokenizer.getInstance();
 		createQuery = new CreateQuery();
-                //tableOperations = new TableOperations();
-                tableOperations = TableOperations.getInstance();
+		//tableOperations = new TableOperations();
+		tableOperations = TableOperations.getInstance();
 	}
 	public void readInput()
 	{
@@ -43,7 +43,7 @@ public class CreateParser
 
 	public ArrayList<ColumnDataPair> getColTypeList()
 	{
-	    return list;
+		return list;
 	}
 
 	public boolean parse_create()
@@ -196,20 +196,19 @@ public class CreateParser
 			return false;
 		return true;
 	}
-        
-        public boolean createTable()
-        {
-            CreateQuery createQuery = getQueryValues();
-            List<ColumnDataPair> list = createQuery.getColumnDataPair();
-            List<String> colNames = new ArrayList<>();
-            List<String> colTypes = new ArrayList<>();
-            for(ColumnDataPair cdp : list)
-            {
-                colNames.add(cdp.getColumnName());
-                colTypes.add(cdp.getDataType().getName());
-            }
-            return tableOperations.createTable(createQuery.getTableName(), colNames, colTypes);
-        }
+	public boolean createTable()
+	{
+		CreateQuery createQuery = getQueryValues();
+		List<ColumnDataPair> list = createQuery.getColumnDataPair();
+		List<String> colNames = new ArrayList<String>();
+		List<String> colTypes = new ArrayList<String>();
+		for(ColumnDataPair cdp : list)
+		{
+			colNames.add(cdp.getColumnName());
+			colTypes.add(cdp.getDataType().getName());
+		}
+		return tableOperations.createTable(createQuery.getTableName(), colNames, colTypes);
+	}
 	public static void main(String[] args)
 	{
 		CreateParser parser = new CreateParser();
