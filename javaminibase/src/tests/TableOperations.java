@@ -69,7 +69,9 @@ class ColTypesAndSizes
 
 public class TableOperations
 {
-	public TableOperations()
+	private static TableOperations tableOperations;
+        
+        public TableOperations()
 	{
 		String dbpath = ".minibase.jointestdb"; 
 	    String logpath = ".joinlog";
@@ -102,6 +104,15 @@ public class TableOperations
 	    	e.printStackTrace();
 	    	return;
 	    }
+	}
+        
+        public static TableOperations getInstance() 
+	{
+		if (tableOperations == null) 
+		{
+			tableOperations = new TableOperations();
+		}
+		return tableOperations;
 	}
 	
 	public ColTypesAndSizes getColTypeAndSize(String colTypes[])
