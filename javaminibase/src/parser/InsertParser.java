@@ -7,7 +7,11 @@ import vo.ColumnValuePair;
 import vo.InsertValue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import tests.TableOperations;
 
 public class InsertParser
 {
@@ -18,6 +22,7 @@ public class InsertParser
 	private ArrayList<ColumnValuePair> list;
 	private ArrayList<String> colNames;
 	private ArrayList<InsertValue> colValues;
+        private TableOperations tableOperations;
 	public InsertParser()
 	{
 		tokenizer = Tokenizer.getInstance();
@@ -26,6 +31,7 @@ public class InsertParser
 		insertQuery = new InsertQuery();
 		col_list_provided = false;
 		list = new ArrayList<ColumnValuePair>();
+                tableOperations = new TableOperations();
 	}
 	public InsertQuery getQueryValues()
 	{
@@ -91,6 +97,7 @@ public class InsertParser
 			{
 				ColumnValuePair obj = new ColumnValuePair(colNIterator.next(), temp);
 				list.add(obj);
+                                
 			}
 		}
 		else
@@ -100,6 +107,7 @@ public class InsertParser
 				ColumnValuePair obj = new ColumnValuePair(null, temp);
 				list.add(obj);
 			}
+                        
 		}
 		insertQuery.setColumnValuePair(list);
 		return true;
@@ -221,6 +229,51 @@ public class InsertParser
 			return false;
 		return true;
 	}
+        public boolean insertValues()
+        {
+            InsertQuery insertQuery = getQueryValues();
+            List<ColumnValuePair> listCVP = insertQuery.getColumnValuePair();
+            Map<String, String> mapColValPair = new HashMap();
+            List<String> listVals = new ArrayList();
+            for(ColumnValuePair cvp : listCVP)
+            {
+                String value=""; 
+                switch(cvp.getValue().getValueType())
+                {
+                    case "STRING":
+                        value = cvp.getValue().getString();
+                        break;
+                    case "INTEGER":
+                        value = String.valueOf(cvp.getValue().getInteger());
+                        break;
+                    case "REAL":
+                        value = String.valueOf(cvp.getValue().getReal());
+                        break;
+                    case "GEOM_OBJ":
+                        value="";
+                        int i;
+                        for(i=0;i<7;i++)
+                        {
+                            value+=String.valueOf(cvp.getValue().getCoOrdinates(i));
+                            value+=",";
+                        }
+                        value+=String.valueOf(cvp.getValue().getCoOrdinates(i));
+                        break;
+                }
+                if(cvp.getColumnName() == null)
+                    listVals.add(value); 
+                else
+                    mapColValPair.put(cvp.getColumnName(), value);
+            }  
+            boolean retVal=false;
+            if(listVals.size()>0)
+                retVal=tableOperations.insertIntoTable(insertQuery.getTableName(), listVals);
+            else if(mapColValPair.size()>0)
+                retVal=tableOperations.insertIntoTable(insertQuery.getTableName(), mapColValPair);
+            
+            return retVal;
+
+        }
 	public static void main(String[] args) 
 	{
 		InsertParser parser = new InsertParser();
