@@ -202,6 +202,18 @@ public class TableOperations
 		return true;
 	}
 	
+	public boolean insertIntoTable(String tableName, List<String> values)
+	{
+		TableObject table = getTableDetails(tableName);
+		Map<String, String> mapValues = new HashMap<String, String>();
+		for(int i=0; i<values.size(); ++i)
+		{
+			mapValues.put(table.columnId.get(i), values.get(i));
+		}
+		
+		return insertIntoTable(tableName, mapValues);
+	}
+	
 	public boolean insertIntoTable(String tableName, Map<String, String> values)
 	{
 		TableObject table = getTableDetails(tableName);
@@ -478,6 +490,8 @@ public class TableOperations
 		test.insertIntoTable("Navneet", m1);
 		test.insertIntoTable("Navneet", m2);
 		test.insertIntoTable("Ak", m1);
+		test.insertIntoTable("Navneet", v3);
+		test.insertIntoTable("Navneet", v4);
 		System.out.println("Selecting....");
 		test.select("Navneet", null);
 		
