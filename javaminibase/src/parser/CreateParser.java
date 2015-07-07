@@ -5,14 +5,17 @@ import tokenizer.Tokenizer;
 import vo.CreateQuery;
 import vo.ColumnDataPair;
 import vo.DataType;
-import java.util.ArrayList; 
+import java.util.ArrayList;
+import java.util.List;
+import tests.TableOperations;
 
-public class CreateParser 
+public class CreateParser
 {
 	private final Tokenizer tokenizer;
 	private Token ttype;
 	private CreateQuery createQuery;
 	private ArrayList<ColumnDataPair> list;
+        private TableOperations tableOperations;
 	public CreateQuery getQueryValues()
 	{
 		return createQuery;
@@ -21,6 +24,7 @@ public class CreateParser
 	{
 		tokenizer = Tokenizer.getInstance();
 		createQuery = new CreateQuery();
+                tableOperations = new TableOperations();
 	}
 	public void readInput()
 	{
@@ -35,6 +39,12 @@ public class CreateParser
 	{
 		return tokenizer.getTokenValue();
 	}
+
+	public ArrayList<ColumnDataPair> getColTypeList()
+	{
+	    return list;
+	}
+
 	public boolean parse_create()
 	{
 		readInput();
@@ -101,7 +111,7 @@ public class CreateParser
 		DataType dt = columnDataPair.getDataType();
 		if(ttype.equals(Token.VARCHAR))
 		{
-			unget();     
+			unget();
 			dt.setName(DataType.VARCHAR);
 			if(!varchar(dt))
 				return false;
@@ -185,7 +195,21 @@ public class CreateParser
 			return false;
 		return true;
 	}
-	public static void main(String[] args) 
+        
+        public boolean createTable()
+        {
+            CreateQuery createQuery = getQueryValues();
+            List<ColumnDataPair> list = createQuery.getColumnDataPair();
+            List<String> colNames = new ArrayList<>();
+            List<String> colTypes = new ArrayList<>();
+            for(ColumnDataPair cdp : list)
+            {
+                colNames.add(cdp.getColumnName());
+                colTypes.add(cdp.getDataType().getName());
+            }
+            return tableOperations.createTable(createQuery.getTableName(), colNames, colTypes);
+        }
+	public static void main(String[] args)
 	{
 		CreateParser parser = new CreateParser();
 		boolean result = parser.parse_create();
