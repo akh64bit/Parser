@@ -356,6 +356,91 @@ public class TableOperations
 		}
 		return new TableObject(tName, count, colId, typeList);
 	}
+
+	public FileScan select (String tableName, CondExpr[] expr, String colNames[])
+	{
+		TableObject table = getTableDetails(tableName);
+		if(table.columnId.size() == 0)
+		{
+			System.err.println("Table: "+tableName+" not found");
+			return null;
+		}
+		String types[] = new String[table.columnId.size()];
+		for (int i=0; i<types.length; ++i)
+		{
+			types[i] = new String(table.columnTypes.get(table.columnId.get(i)));
+		}
+		ColTypesAndSizes ct = getColTypeAndSize(types);
+
+		FldSpec [] projection;
+		if(colNames == null)
+		{
+			projection = new FldSpec[ct.colTypes.length];
+
+		
+			for(int i=0; i<projection.length; ++i)
+			{
+				projection[i] = new FldSpec(new RelSpec(RelSpec.outer), i+1);
+			}
+		}
+		else
+		{
+			projection = new FldSpec[colNames.length];
+			for(int i=0; i<projection.length; ++i)
+			{
+				projection[i] = new FldSpec(new RelSpec(RelSpec.outer), table.columnName.get(colNames[i])+1);
+			}
+		}
+	    
+	    FileScan am = null;
+	    try 
+	    {
+	      am  = new FileScan(tableName+".in", ct.colTypes, ct.colSizes, 
+					  (short)ct.colTypes.length, (short)projection.length,
+					  projection, expr);
+	    }
+	    catch (Exception e) 
+	    {
+	       System.err.println (""+e);
+	    }
+    
+
+		//		FldSpec [] projection = new FldSpec[s.length];
+		//	    for(int i=0; i<projection.length; ++i)
+		//	    {
+		//	    	projection[i] = new FldSpec(new RelSpec(RelSpec.outer), 1+table.columnName.get(s[i]));
+		//	    }
+		FldSpec [] projection = new FldSpec[ct.colTypes.length];
+		for(int i=0; i<projection.length; ++i)
+		{
+			projection[i] = new FldSpec(new RelSpec(RelSpec.outer), i+1);
+		}
+		FileScan am = null;
+		try 
+		{
+			am  = new FileScan(tableName+".in", ct.colTypes, ct.colSizes, (short)ct.colTypes.length, (short)projection.length, projection, expr);
+		}
+		catch (Exception e) 
+		{
+			System.err.println (""+e);
+		}
+		Tuple t;
+		try 
+		{
+			while ((t = am.get_next()) != null)
+			{
+				t.print(ct.colTypes);
+			}
+		}
+		catch (Exception e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return am;
+	}
+
 	public FileScan select (String tableName, CondExpr[] expr)
 	{
 		TableObject table = getTableDetails(tableName);
@@ -406,6 +491,91 @@ public class TableOperations
 		}
 		return am;
 	}
+
+
+	public SortMerge join(String tableName1, String joinColumn1, String strOuterCol[],
+			String tableName2, String joinColumn2, String strInnerCol[], 
+			CondExpr expr[])
+	{
+		TableObject table1 = getTableDetails(tableName1);
+		TableObject table2 = getTableDetails(tableName2);
+		
+		int outerCol[] = new int[strOuterCol.length];
+		int innerCol[] = new int[strInnerCol.length];
+		
+		int join1Offset = table1.columnName.get(joinColumn1)+1;
+		int join2Offset = table2.columnName.get(joinColumn2)+1;
+		
+		for(int i=0; i<strOuterCol.length; ++i)
+		{
+			outerCol[i] = table1.columnName.get(strOuterCol[i]) + 1;
+		}
+		
+		for(int i=0; i<strInnerCol.length; ++i)
+		{
+			innerCol[i] = table2.columnName.get(strInnerCol[i]) + 1;
+		}
+		
+		FileScan fs1 = select(tableName1, null, null);
+		FileScan fs2 = select(tableName2, null, null);
+		
+		
+		
+		String types1[] = new String[table1.columnId.size()];
+		for (int i=0; i<types1.length; ++i)
+		{
+			types1[i] = new String(table1.columnTypes.get(table1.columnId.get(i)));
+		}
+		
+		String types2[] = new String[table2.columnId.size()];
+		for (int i=0; i<types1.length; ++i)
+		{
+			types2[i] = new String(table2.columnTypes.get(table2.columnId.get(i)));
+		}
+		
+		ColTypesAndSizes ct1 = getColTypeAndSize(types1);
+		ColTypesAndSizes ct2 = getColTypeAndSize(types2);
+		
+		int projSize = outerCol.length + innerCol.length;
+		FldSpec [] proj_list = new FldSpec[projSize];
+		
+		for(int i=0; i<outerCol.length; ++i)
+		{
+			proj_list[i] = new FldSpec(new RelSpec(RelSpec.outer), outerCol[i]);
+		}
+		
+		for(int i=0; i<innerCol.length; ++i)
+		{
+			proj_list[i+outerCol.length] = new FldSpec(new RelSpec(RelSpec.innerRel), innerCol[i]);
+		}
+		
+
+
+	    TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
+	    SortMerge sm = null;
+	    
+	    try {
+	        sm = new SortMerge(ct1.colTypes, ct1.colTypes.length, ct1.colSizes,
+	  			 ct2.colTypes, ct2.colTypes.length, ct2.colSizes,
+	  			 join1Offset, 4, 
+	  			 join2Offset, 4, 
+	  			 10,
+	  			 fs1, fs2, 
+	  			 false, false, ascending,
+	  			 null, proj_list, proj_list.length);
+	      }
+	      catch (Exception e) {
+	        System.err.println("*** join error in SortMerge constructor ***"); 
+	        System.err.println (""+e);
+	        e.printStackTrace();
+	      }
+		return sm;
+		
+		
+		
+	}
+
+
 	public static void main(String args[])
 	{
 		TableOperations test = new TableOperations();
