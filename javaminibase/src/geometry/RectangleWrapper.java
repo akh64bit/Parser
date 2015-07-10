@@ -15,7 +15,7 @@ public class RectangleWrapper// Not extending Rectangle... Instead of that creat
     private Point centroid;
 
     
-    RectangleWrapper(SdoGeom geomObj)
+    public RectangleWrapper(SdoGeom geomObj)
     {   
         sdoGeom = geomObj;
         rectangle = new Rectangle((int)geomObj.getUpperLeft().getX(), (int)geomObj.getUpperLeft().getY(), geomObj.getWidth(), geomObj.getHeight());
@@ -24,7 +24,7 @@ public class RectangleWrapper// Not extending Rectangle... Instead of that creat
         
     }
     
-    RectangleWrapper(Rectangle rec)
+    public RectangleWrapper(Rectangle rec)
     {   
         sdoGeom = getGeomObject(rec);
         rectangle = rec;
@@ -32,7 +32,7 @@ public class RectangleWrapper// Not extending Rectangle... Instead of that creat
         centroid = calCentroid();
     }
     
-    SdoGeom getGeomObject(Rectangle rec)
+    public SdoGeom getGeomObject(Rectangle rec)
     {
         int x1=rec.x;
         int y1=rec.y;
@@ -126,6 +126,7 @@ public class RectangleWrapper// Not extending Rectangle... Instead of that creat
         SdoGeom s2=new SdoGeom(1,1,3,4,1,4,3,1);
         RectangleWrapper r2= new RectangleWrapper(s2);
         r2.print();
+        
         System.out.println("Area of rectangle r1: "+r1.getArea());
         
         if(r1.hasIntersection(r2))
@@ -133,6 +134,7 @@ public class RectangleWrapper// Not extending Rectangle... Instead of that creat
                                                             r1.getIntersection(r2).getRectangle().y     +", width-"+
                                                             r1.getIntersection(r2).getRectangle().width +", height-"+
                                                             r1.getIntersection(r2).getRectangle().height);
+        
         System.out.println("Distance between the rectangles : "+r1.getDistance(r2));
         
     }
