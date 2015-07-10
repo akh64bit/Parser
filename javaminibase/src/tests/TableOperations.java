@@ -14,6 +14,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import vo.FromObj;
+import vo.SelectObj;
+import vo.SelectQuery;
 
 class TableObject
 {
@@ -356,91 +361,283 @@ public class TableOperations
 		}
 		return new TableObject(tName, count, colId, typeList);
 	}
-
-	public FileScan select (String tableName, CondExpr[] expr, String colNames[])
+	public boolean checkSelectSemantics(SelectQuery input)
 	{
-		TableObject table = getTableDetails(tableName);
-		if(table.columnId.size() == 0)
+		if(!input.getTableColumnList())
+			return false;
+		if(!input.getCondColList())
+			return false;
+		// Checking if all the tables in the FROM clause are present in the DB.
+		for(FromObj temp : input.getFromList())
 		{
-			System.err.println("Table: "+tableName+" not found");
-			return null;
+			TableObject table = getTableDetails(temp.getTableName());
+			if(table.columnId.size() == 0)
+			{
+				System.err.println("Table: "+temp.getTableName()+" not found");
+				return false;
+			}
 		}
+		// Checking if all the Columns in SELECT clause are present in the table 
+		for(SelectObj temp : input.getSelectList())
+		{
+			switch(temp.getSelType())
+			{
+			case SelectObj.FIELD:
+			{
+				String splitVal [] = temp.getValue().split("\\.");
+				TableObject table = getTableDetails(input.getTableName(splitVal[0]));
+				boolean flag = true;
+				for(Entry<Integer,String> colId: table.columnId.entrySet())
+				{
+					if(splitVal[1].equalsIgnoreCase(colId.getValue()))
+					{
+						temp.setColId(colId.getKey());
+						temp.setColType(table.columnTypes.get(splitVal[1]));
+						flag = false;
+						break;
+					}
+				}
+				if(flag)
+				{
+					System.err.println("Column Name '"+splitVal[1]+"' not found in table '"+table.tableName+"'");
+					return false;
+				}
+			}
+			break;
+			case SelectObj.AREA:
+			{
+				String splitVal [] = temp.getFunction().getShape1().split("\\.");
+				TableObject table = getTableDetails(input.getTableName(splitVal[0]));
+				boolean flag = true;
+				for(Entry<Integer,String> colId: table.columnId.entrySet())
+				{
+					if(splitVal[1].equalsIgnoreCase(colId.getValue()))
+					{
+						temp.getFunction().setShapeId1(colId.getKey());
+						flag = false;
+						break;
+					}
+				}
+				if(flag)
+				{
+					System.err.println("Column Name '"+splitVal[1]+"' not found in table '"+table.tableName+"'");
+					return false;
+				}
+			}
+			break;
+			case SelectObj.DISTANCE:
+			case SelectObj.INTERSECTION:
+			{
+				String splitVal [] = temp.getFunction().getShape1().split("\\.");
+				TableObject table = getTableDetails(input.getTableName(splitVal[0]));
+				boolean flag = true;
+				for(Entry<Integer,String> colId: table.columnId.entrySet())
+				{
+					if(splitVal[1].equalsIgnoreCase(colId.getValue()))
+					{
+						temp.getFunction().setShapeId1(colId.getKey());
+						flag = false;
+						break;
+					}
+				}
+				if(flag)
+				{
+					System.err.println("Column Name '"+splitVal[1]+"' not found in table '"+table.tableName+"'");
+					return false;
+				}
+				splitVal = temp.getFunction().getShape2().split("\\.");
+				table = getTableDetails(input.getTableName(splitVal[0]));
+				flag = true;
+				for(Entry<Integer,String> colId: table.columnId.entrySet())
+				{
+					if(splitVal[1].equalsIgnoreCase(colId.getValue()))
+					{
+						temp.getFunction().setShapeId2(colId.getKey());
+						flag = false;
+						break;
+					}
+				}
+				if(flag)
+				{
+					System.err.println("Column Name '"+splitVal[1]+"' not found in table '"+table.tableName+"'");
+					return false;
+				}
+			}
+			break;
+			default:
+				return false;
+			}
+		}
+		// Checking columns mentioned in WHERE clause
+		for (CondExpr temp1: input.getCondList())
+		{
+			if(AttrType.attrSymbol == temp1.type1.attrType)
+			{
+				String colName = temp1.operand1.string;
+				String splitValue[] = colName.split("\\.");
+				TableObject table = getTableDetails(input.getTableName(splitValue[0]));
+				if(table.columnId.size()==0)
+				{
+					System.err.println("Table: "+input.getTableName(splitValue[0])+" not found");
+					return false;
+				}
+				boolean flag = true;
+				for (Entry<Integer, String> colId: table.columnId.entrySet())
+				{
+					if(splitValue[1].equalsIgnoreCase(colId.getValue()))
+					{
+						temp1.operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), colId.getKey()+1);
+						flag = false;
+						break;
+					}
+				}
+				if(flag)
+				{
+					System.err.println("Column Name '"+colName+"' not found in table '"+table.tableName+"'");
+					return false;
+				}
+			}
+			if(AttrType.attrSymbol == temp1.type2.attrType)
+			{
+				String colName = temp1.operand2.string;
+				String splitValue[] = colName.split("\\.");
+				TableObject table = getTableDetails(input.getTableName(splitValue[0]));
+				if(table.columnId.size()==0)
+				{
+					System.err.println("Table: "+input.getTableName(splitValue[0])+" not found");
+					return false;
+				}
+				boolean flag = true;
+				for (Entry<Integer, String> colId: table.columnId.entrySet())
+				{
+					if(splitValue[1].equalsIgnoreCase(colId.getValue()))
+					{
+						temp1.operand2.symbol = new FldSpec(new RelSpec(RelSpec.innerRel), colId.getKey()+1);
+						flag = false;
+						break;
+					}
+				}
+				if(flag)
+				{
+					System.err.println("Column Name '"+colName+"' not found in table '"+table.tableName+"'");
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	public FileScan select (SelectQuery input)
+	{
+		if(!checkSelectSemantics(input))
+			return null;
+		if(input.getFromList().size() == 1)
+		{
+			return selectSingleTable(input);
+		}
+		return null;
+	}
+	public String [] getProjectionTypes(SelectQuery input, List<String> operation)
+	{
+		ArrayList<String> tempList = new ArrayList<String>();
+		for(SelectObj temp: input.getSelectList())
+		{
+			operation.add(temp.getSelType());
+			switch(temp.getSelType())
+			{
+			case SelectObj.FIELD:
+			{
+				tempList.add(temp.getColType());
+			}
+			break;
+			case SelectObj.AREA:
+			{
+				tempList.add("SDO_GEOM");
+			}
+			break;
+			case SelectObj.DISTANCE:
+			case SelectObj.INTERSECTION:
+			{
+				tempList.add("SDO_GEOM");
+				tempList.add("SDO_GEOM");
+			}
+			break;
+			}
+		}
+		String [] types = new String [tempList.size()];
+		for(int i = 0 ; i<tempList.size();i++)
+			types[i]= tempList.get(i);
+		return types;
+	}
+	public FldSpec [] getFilters(SelectQuery input, List<String> operation)
+	{
+		ArrayList<Integer> idList = new ArrayList<Integer>();
+		for(SelectObj temp: input.getSelectList())
+		{
+			operation.add(temp.getSelType());
+			switch(temp.getSelType())
+			{
+			case SelectObj.FIELD:
+			{
+				idList.add(temp.getColId());
+			}
+			break;
+			case SelectObj.AREA:
+			{
+				idList.add(temp.getFunction().getShapeId1());
+			}
+			break;
+			case SelectObj.DISTANCE:
+			case SelectObj.INTERSECTION:
+			{
+				idList.add(temp.getFunction().getShapeId1());
+				idList.add(temp.getFunction().getShapeId2());
+			}
+			break;
+			}
+		}
+		FldSpec [] projection = new FldSpec[idList.size()];
+		for(int j = 0; j < idList.size();j++)
+		{
+			projection[j] = new FldSpec(new RelSpec(RelSpec.outer), idList.get(j)+1);
+		}
+		return projection;
+	}
+	public FileScan selectSingleTable (SelectQuery input)
+	{
+		Tuple t = null;
+		TableObject table = getTableDetails(input.getFromList().get(0).getTableName());
+		List<String> operation = new ArrayList<String>();
+		//String [] types = getProjectionTypes(input,operation);
+		FldSpec [] projection = getFilters(input,operation);
 		String types[] = new String[table.columnId.size()];
 		for (int i=0; i<types.length; ++i)
 		{
 			types[i] = new String(table.columnTypes.get(table.columnId.get(i)));
 		}
 		ColTypesAndSizes ct = getColTypeAndSize(types);
-
-		FldSpec [] projection;
-		if(colNames == null)
+		CondExpr [] expr = null;
+		if(input.getCondList().size() > 0)
 		{
-			projection = new FldSpec[ct.colTypes.length];
-
-		
-			for(int i=0; i<projection.length; ++i)
+			expr = new CondExpr[input.getCondList().size()];
+			int count = 0;
+			for(CondExpr temp : input.getCondList())
+				expr[count++] = temp; 
+		}
+		FileScan fs = null;
+		try
+		{
+			fs = new FileScan(table.tableName+".in", ct.colTypes, ct.colSizes, (short)ct.colTypes.length, (short)projection.length, projection,expr);
+			while ((t = fs.get_next()) != null)
 			{
-				projection[i] = new FldSpec(new RelSpec(RelSpec.outer), i+1);
+				t.print(ct.colTypes, operation);
 			}
 		}
-		else
+		catch(Exception e)
 		{
-			projection = new FldSpec[colNames.length];
-			for(int i=0; i<projection.length; ++i)
-			{
-				projection[i] = new FldSpec(new RelSpec(RelSpec.outer), table.columnName.get(colNames[i])+1);
-			}
-		}
-	    
-	    FileScan am = null;
-	    try 
-	    {
-	      am  = new FileScan(tableName+".in", ct.colTypes, ct.colSizes, 
-					  (short)ct.colTypes.length, (short)projection.length,
-					  projection, expr);
-	    }
-	    catch (Exception e) 
-	    {
-	       System.err.println (""+e);
-	    }
-    
-
-		//		FldSpec [] projection = new FldSpec[s.length];
-		//	    for(int i=0; i<projection.length; ++i)
-		//	    {
-		//	    	projection[i] = new FldSpec(new RelSpec(RelSpec.outer), 1+table.columnName.get(s[i]));
-		//	    }
-		FldSpec [] projection = new FldSpec[ct.colTypes.length];
-		for(int i=0; i<projection.length; ++i)
-		{
-			projection[i] = new FldSpec(new RelSpec(RelSpec.outer), i+1);
-		}
-		FileScan am = null;
-		try 
-		{
-			am  = new FileScan(tableName+".in", ct.colTypes, ct.colSizes, (short)ct.colTypes.length, (short)projection.length, projection, expr);
-		}
-		catch (Exception e) 
-		{
-			System.err.println (""+e);
-		}
-		Tuple t;
-		try 
-		{
-			while ((t = am.get_next()) != null)
-			{
-				t.print(ct.colTypes);
-			}
-		}
-		catch (Exception e) 
-		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		return am;
+		return fs;
 	}
-
 	public FileScan select (String tableName, CondExpr[] expr)
 	{
 		TableObject table = getTableDetails(tableName);
@@ -491,91 +688,6 @@ public class TableOperations
 		}
 		return am;
 	}
-
-
-	public SortMerge join(String tableName1, String joinColumn1, String strOuterCol[],
-			String tableName2, String joinColumn2, String strInnerCol[], 
-			CondExpr expr[])
-	{
-		TableObject table1 = getTableDetails(tableName1);
-		TableObject table2 = getTableDetails(tableName2);
-		
-		int outerCol[] = new int[strOuterCol.length];
-		int innerCol[] = new int[strInnerCol.length];
-		
-		int join1Offset = table1.columnName.get(joinColumn1)+1;
-		int join2Offset = table2.columnName.get(joinColumn2)+1;
-		
-		for(int i=0; i<strOuterCol.length; ++i)
-		{
-			outerCol[i] = table1.columnName.get(strOuterCol[i]) + 1;
-		}
-		
-		for(int i=0; i<strInnerCol.length; ++i)
-		{
-			innerCol[i] = table2.columnName.get(strInnerCol[i]) + 1;
-		}
-		
-		FileScan fs1 = select(tableName1, null, null);
-		FileScan fs2 = select(tableName2, null, null);
-		
-		
-		
-		String types1[] = new String[table1.columnId.size()];
-		for (int i=0; i<types1.length; ++i)
-		{
-			types1[i] = new String(table1.columnTypes.get(table1.columnId.get(i)));
-		}
-		
-		String types2[] = new String[table2.columnId.size()];
-		for (int i=0; i<types1.length; ++i)
-		{
-			types2[i] = new String(table2.columnTypes.get(table2.columnId.get(i)));
-		}
-		
-		ColTypesAndSizes ct1 = getColTypeAndSize(types1);
-		ColTypesAndSizes ct2 = getColTypeAndSize(types2);
-		
-		int projSize = outerCol.length + innerCol.length;
-		FldSpec [] proj_list = new FldSpec[projSize];
-		
-		for(int i=0; i<outerCol.length; ++i)
-		{
-			proj_list[i] = new FldSpec(new RelSpec(RelSpec.outer), outerCol[i]);
-		}
-		
-		for(int i=0; i<innerCol.length; ++i)
-		{
-			proj_list[i+outerCol.length] = new FldSpec(new RelSpec(RelSpec.innerRel), innerCol[i]);
-		}
-		
-
-
-	    TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
-	    SortMerge sm = null;
-	    
-	    try {
-	        sm = new SortMerge(ct1.colTypes, ct1.colTypes.length, ct1.colSizes,
-	  			 ct2.colTypes, ct2.colTypes.length, ct2.colSizes,
-	  			 join1Offset, 4, 
-	  			 join2Offset, 4, 
-	  			 10,
-	  			 fs1, fs2, 
-	  			 false, false, ascending,
-	  			 null, proj_list, proj_list.length);
-	      }
-	      catch (Exception e) {
-	        System.err.println("*** join error in SortMerge constructor ***"); 
-	        System.err.println (""+e);
-	        e.printStackTrace();
-	      }
-		return sm;
-		
-		
-		
-	}
-
-
 	public static void main(String args[])
 	{
 		TableOperations test = new TableOperations();
@@ -589,7 +701,7 @@ public class TableOperations
 		List<String> v5 = new ArrayList<String>();
 		cn.add("Name"); cn.add("Age"); cn.add("salary"); cn.add("location");
 		cn1.add("Name"); cn1.add("location"); cn1.add("Age"); cn1.add("salary");
-		ct.add("VARCHAR"); ct.add("INTEGER"); ct.add("INTEGER"); ct.add("SDOGEOM");
+		ct.add("VARCHAR"); ct.add("INTEGER"); ct.add("INTEGER"); ct.add("SDO_GEOM");
 		v1.add("nav1"); v1.add("0,0,1,1,2,2,9,9"); v1.add("26"); v1.add("1000");
 		v2.add("nav2"); v2.add("27"); v2.add("2000"); v2.add("0,0,1,1,2,2,5,5");
 		v3.add("nav3"); v3.add("28"); v3.add("3000"); v3.add("0,0,1,1,2,2,6,6");
