@@ -1,5 +1,6 @@
 package global;
 
+import geometry.Point;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -12,6 +13,9 @@ import java.io.OutputStream;
 public class SdoGeom 
 {
 	int x1, y1, x2, y2, x3, y3, x4, y4;
+        private Point upperLeft;
+        private int height;
+        private int width;
 	
 	public SdoGeom(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
 	{
@@ -23,7 +27,68 @@ public class SdoGeom
 		this.y3 = y3;
 		this.x4 = x4;
 		this.y4 = y4;
+                upperLeft=new Point(getSmallestX(), getLargestY());
 	}
+        
+        private int getLargestY()
+        {
+            //the values for 2 of the y's will be the same and 2 of the other y's will be the same.
+            int l;
+            if(y1>y2)
+            {
+                l=y1;
+                width = y1-y2;
+            }
+            else if(y1==y2)
+            {
+                if(y1>y3)
+                {
+                    l=y1;
+                    width = y1-y3;
+                }
+                else//y3>y1, since y1=y2, it can't also be equal to y3, since then they will be a staright line!
+                {
+                    l=y3;
+                    width = y3-y1;
+                }
+                
+            }
+            else//y1 < y2
+            {
+                l=y2;
+                width=y2-y1;
+            }
+            return l;
+        }
+        
+        private int getSmallestX()
+        {
+            int l;
+            if(x1<x2)
+            {
+                l=x1;
+                height = x2-x1;
+            }
+            else if(x1==x2)
+            {
+                if(x1<x3)
+                {
+                    l=x1;
+                    height = x3-x1;
+                }
+                else//x1>x3 since x1=x2, it can't also be equal to x3, since then they will be a straight line!
+                {
+                    l=x3;
+                    height = x1-x3;
+                }
+            }
+            else//x1 < x2
+            {
+                l=x2;
+                height=x1-x2;
+            }
+            return l;
+        }
 	
 	public SdoGeom (byte[] b) throws IOException
 	{
@@ -66,4 +131,47 @@ public class SdoGeom
 		s.append("("); s.append(x4); s.append(","); s.append(y4); s.append(")");
 		return s.toString();
 	}
+        
+
+    /**
+     * @return the upperLeft
+     */
+    public Point getUpperLeft() {
+        return upperLeft;
+    }
+
+    /**
+     * @return the height
+     */
+    public int getHeight() {
+        return height;
+    }
+
+    /**
+     * @return the width
+     */
+    public int getWidth() {
+        return width;
+    }
+
+    /**
+     * @param upperLeft the upperLeft to set
+     */
+    public void setUpperLeft(Point upperLeft) {
+        this.upperLeft = upperLeft;
+    }
+
+    /**
+     * @param height the height to set
+     */
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    /**
+     * @param width the width to set
+     */
+    public void setWidth(int width) {
+        this.width = width;
+    }
 }
