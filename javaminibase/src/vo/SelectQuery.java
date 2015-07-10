@@ -1,5 +1,6 @@
 package vo;
 
+import global.AttrType;
 import iterator.CondExpr;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,134 @@ public class SelectQuery extends Query
 	public void addFromObj(FromObj obj)
 	{
 		getFromList().add(obj);
+	}
+	public String getTableName(String alias)
+	{
+		for(FromObj temp: fromList)
+		{
+			if(temp.getAlias().equalsIgnoreCase(alias))
+				return temp.getTableName();
+		}
+		return null;
+	}
+	public boolean checkTableAlias(String alias, String colName)
+	{
+		for(FromObj temp: fromList)
+		{
+			if(temp.getAlias().equalsIgnoreCase(alias))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean checkTableAlias(String alias)
+	{
+		for(FromObj temp: fromList)
+		{
+			if(temp.getAlias().equalsIgnoreCase(alias))
+				return true;
+		}
+		return false;
+	}
+	public boolean getTableColumnList()
+	{
+		for(SelectObj temp : selectList)
+		{
+			if(SelectObj.FIELD.equalsIgnoreCase(temp.getSelType()))
+			{
+				String fieldSplit[] = temp.getValue().split("\\.");
+				if(fieldSplit.length != 2)
+				{
+					System.err.println("Incorrect Select Field format. Table alias not prefixed for "+temp.getValue());
+					return false;
+				}
+				if(!checkTableAlias(fieldSplit[0],fieldSplit[1]))
+				{
+					System.err.println("Incorrect alias '"+fieldSplit[0]+"'. No such table found in FROM clause");
+					return false;
+				}
+			}
+			else if(SelectObj.AREA.equalsIgnoreCase(temp.getSelType()))
+			{
+				GeoFunction geoFn = temp.getFunction();
+				String fieldSplit[] = geoFn.getShape1().split("\\.");
+				if(fieldSplit.length != 2)
+				{
+					System.err.println("Incorrect Select Field format. Table alias not prefixed for "+geoFn.getShape1());
+					return false;
+				}
+				if(!checkTableAlias(fieldSplit[0],fieldSplit[1]))
+				{
+					System.err.println("Incorrect alias '"+fieldSplit[0]+"'. No such table found in FROM clause");
+					return false;
+				}
+			}
+			else
+			{
+				GeoFunction geoFn = temp.getFunction();
+				String fieldSplit[] = geoFn.getShape1().split("\\.");
+				if(fieldSplit.length != 2)
+				{
+					System.err.println("Incorrect Select Field format. Table alias not prefixed for "+geoFn.getShape1());
+					return false;
+				}
+				if(!checkTableAlias(fieldSplit[0],fieldSplit[1]))
+				{
+					System.err.println("Incorrect alias '"+fieldSplit[0]+"'. No such table found in FROM clause");
+					return false;
+				}
+				String fieldSplit1[] = geoFn.getShape2().split("\\.");
+				if(fieldSplit1.length != 2)
+				{
+					System.err.println("Incorrect Select Field format. Table alias not prefixed for "+geoFn.getShape2());
+					return false;
+				}
+				if(!checkTableAlias(fieldSplit1[0],fieldSplit1[1]))
+				{
+					System.err.println("Incorrect alias '"+fieldSplit1[0]+"'. No such table found in FROM clause");
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	public boolean getCondColList()
+	{
+		for (CondExpr temp: condList)
+		{
+			if(AttrType.attrSymbol == temp.type1.attrType)
+			{
+				String fieldName = temp.operand1.string;
+				String fieldSplit[] = fieldName.split("\\.");
+				if(fieldSplit.length != 2)
+				{
+					System.err.println("Incorrect Select Field format. Table alias not prefixed for "+fieldName);
+					return false;
+				}
+				if(!checkTableAlias(fieldSplit[0]))
+				{
+					System.err.println("Incorrect alias '"+fieldSplit[0]+"'. No such alias found in FROM clause");
+					return false;
+				}
+			}
+			if(AttrType.attrSymbol == temp.type2.attrType)
+			{
+				String fieldName = temp.operand2.string;
+				String fieldSplit[] = fieldName.split("\\.");
+				if(fieldSplit.length != 2)
+				{
+					System.err.println("Incorrect Select Field format. Table alias not prefixed for "+fieldName);
+					return false;
+				}
+				if(!checkTableAlias(fieldSplit[0]))
+				{
+					System.err.println("Incorrect alias '"+fieldSplit[0]+"'. No such alias found in FROM clause");
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 	@Override
 	public void display()

@@ -4,6 +4,8 @@ public class GeoFunction
 {
 	private String shape1;
 	private String shape2;
+	private int shapeId1;
+	private int shapeId2;
 	private double precision;
 	public String getShape1() 
 	{
@@ -36,5 +38,17 @@ public class GeoFunction
 		b.append("shape2: ").append(shape2).append("; ");
 		b.append("precision: ").append(precision).append(";");
 		return b.toString();
+	}
+	public int getShapeId1() {
+		return shapeId1;
+	}
+	public void setShapeId1(int shapeId1) {
+		this.shapeId1 = shapeId1;
+	}
+	public int getShapeId2() {
+		return shapeId2;
+	}
+	public void setShapeId2(int shapeId2) {
+		this.shapeId2 = shapeId2;
 	}
 }

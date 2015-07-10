@@ -9,6 +9,8 @@ public class SelectObj
 	
 	private String selType;
 	private String value;
+	private int colId;
+	private String colType;
 	private GeoFunction function;
 	public String getSelType() 
 	{
@@ -43,5 +45,17 @@ public class SelectObj
 		else
 			b.append(function.toString());
 		return b.toString();
+	}
+	public int getColId() {
+		return colId;
+	}
+	public void setColId(int colId) {
+		this.colId = colId;
+	}
+	public String getColType() {
+		return colType;
+	}
+	public void setColType(String colType) {
+		this.colType = colType;
 	}
 }
