@@ -98,6 +98,7 @@ public class SdoGeom
 		y3 = instr.readInt();
 		x4 = instr.readInt();
 		y4 = instr.readInt();
+		upperLeft=new Point(getSmallestX(), getSmallestY());
 	}
 	
 	public byte[] getByteArray() throws IOException
