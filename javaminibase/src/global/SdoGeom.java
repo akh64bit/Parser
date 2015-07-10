@@ -27,40 +27,36 @@ public class SdoGeom
 		this.y3 = y3;
 		this.x4 = x4;
 		this.y4 = y4;
-                upperLeft=new Point(getSmallestX(), getLargestY());
+                upperLeft=new Point(getSmallestX(), getSmallestY());
 	}
-        
-        private int getLargestY()
+        private int getSmallestY()
         {
-            //the values for 2 of the y's will be the same and 2 of the other y's will be the same.
             int l;
-            if(y1>y2)
+            if(y1<y2)
             {
                 l=y1;
-                height = y1-y2;
+                height = y2-y1;
             }
             else if(y1==y2)
             {
-                if(y1>y3)
+                if(y1<y3)
                 {
                     l=y1;
-                    height = y1-y3;
-                }
-                else//y3>y1, since y1=y2, it can't also be equal to y3, since then they will be a staright line!
-                {
-                    l=y3;
                     height = y3-y1;
                 }
-                
+                else//y1>y3 since y1=y2, it can't also be equal to y3, since then they will be a straight line!
+                {
+                    l=y3;
+                    height = y1-y3;
+                }
             }
             else//y1 < y2
             {
                 l=y2;
-                height=y2-y1;
+                height=y1-y2;
             }
             return l;
         }
-        
         private int getSmallestX()
         {
             int l;
