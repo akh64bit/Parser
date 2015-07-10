@@ -3,7 +3,10 @@
 package heap;
 
 import java.io.*;
-import java.lang.*;
+import java.util.List;
+
+import vo.SelectObj;
+import geometry.RectangleWrapper;
 import global.*;
 
 
@@ -252,19 +255,17 @@ public class Tuple implements GlobalConst{
      throw new FieldNumberOutOfBoundException (null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
   }
    
-   public SdoGeom getSdoGeomFld(int fldNo) 
-		   	throws IOException, FieldNumberOutOfBoundException 
-		   { 
-		         SdoGeom val;
-		    if ( (fldNo > 0) && (fldNo <= fldCnt))      
-		     {
-		        val = Convert.getSdoGeomValue(fldOffset[fldNo -1], data, 
-				fldOffset[fldNo] - fldOffset[fldNo -1]); //strlen+2
-		        return val;
-		     }
-		    else 
-		     throw new FieldNumberOutOfBoundException (null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
-		  }
+   public SdoGeom getSdoGeomFld(int fldNo) throws IOException, FieldNumberOutOfBoundException 
+   { 
+	   SdoGeom val;
+	   if ( (fldNo > 0) && (fldNo <= fldCnt))
+	   {
+		   val = Convert.getSdoGeomValue(fldOffset[fldNo -1], data, fldOffset[fldNo] - fldOffset[fldNo -1]); //strlen+2
+		   return val;
+	   }
+	   else 
+		   throw new FieldNumberOutOfBoundException (null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
+   }
  
    /**
     * Convert this field into a character
@@ -356,15 +357,15 @@ public class Tuple implements GlobalConst{
 
    public Tuple setSdoGeomFld(int fldNo, SdoGeom val) 
 			throws IOException, FieldNumberOutOfBoundException  
+   {
+	   if ( (fldNo > 0) && (fldNo <= fldCnt))        
 	   {
-	     if ( (fldNo > 0) && (fldNo <= fldCnt))        
-	      {
-	         Convert.setSdoGeomValue (val, fldOffset[fldNo -1], data);
-	         return this;
-	      }
-	     else 
-	       throw new FieldNumberOutOfBoundException (null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
-	    }
+		   Convert.setSdoGeomValue (val, fldOffset[fldNo -1], data);
+		   return this;
+	   }
+	   else 
+		   throw new FieldNumberOutOfBoundException (null, "TUPLE:TUPLE_FLDNO_OUT_OF_BOUND");
+   }
    /**
     * setHdr will set the header of this tuple.   
     *
@@ -378,84 +379,68 @@ public class Tuple implements GlobalConst{
     *
     */
 
-public void setHdr (short numFlds,  AttrType types[], short strSizes[])
- throws IOException, InvalidTypeException, InvalidTupleSizeException		
+public void setHdr (short numFlds,  AttrType types[], short strSizes[]) throws IOException, InvalidTypeException, InvalidTupleSizeException		
 {
-  if((numFlds +2)*2 > max_size)
-    throw new InvalidTupleSizeException (null, "TUPLE: TUPLE_TOOBIG_ERROR");
-  
-  fldCnt = numFlds;
-  Convert.setShortValue(numFlds, tuple_offset, data);
-  fldOffset = new short[numFlds+1];
-  int pos = tuple_offset+2;  // start position for fldOffset[]
-  
-  //sizeof short =2  +2: array siaze = numFlds +1 (0 - numFilds) and
-  //another 1 for fldCnt
-  fldOffset[0] = (short) ((numFlds +2) * 2 + tuple_offset);   
-   
-  Convert.setShortValue(fldOffset[0], pos, data);
-  pos +=2;
-  short strCount =0;
-  short incr;
-  int i;
-
-  for (i=1; i<numFlds; i++)
-  {
-    switch(types[i-1].attrType) {
-    
-   case AttrType.attrInteger:
-     incr = 4;
-     break;
-
-   case AttrType.attrReal:
-     incr =4;
-     break;
-
-   case AttrType.attrString:
-     incr = (short) (strSizes[strCount] +2);  //strlen in bytes = strlen +2
-     strCount++;
-     break;
-   case AttrType.attrGeom:
-	   incr = (short) 4*8;
-	   break;
- 
-   default:
-    throw new InvalidTypeException (null, "TUPLE: TUPLE_TYPE_ERROR");
-   }
-    
-  fldOffset[i]  = (short) (fldOffset[i-1] + incr);
-  Convert.setShortValue(fldOffset[i], pos, data);
-  pos +=2;
- 
-}
- switch(types[numFlds -1].attrType) {
-
-   case AttrType.attrInteger:
-     incr = 4;
-     break;
-
-   case AttrType.attrReal:
-     incr =4;
-     break;
-
-   case AttrType.attrString:
-     incr =(short) ( strSizes[strCount] +2);  //strlen in bytes = strlen +2
-     break;
-
-   case AttrType.attrGeom:
-	   incr = (short) 4*8;
-	   break;
-   default:
-    throw new InvalidTypeException (null, "TUPLE: TUPLE_TYPE_ERROR");
-   }
-
-  fldOffset[numFlds] = (short) (fldOffset[i-1] + incr);
-  Convert.setShortValue(fldOffset[numFlds], pos, data);
-  
-  tuple_length = fldOffset[numFlds] - tuple_offset;
-
-  if(tuple_length > max_size)
-   throw new InvalidTupleSizeException (null, "TUPLE: TUPLE_TOOBIG_ERROR");
+	if((numFlds +2)*2 > max_size)
+		throw new InvalidTupleSizeException (null, "TUPLE: TUPLE_TOOBIG_ERROR");
+	fldCnt = numFlds;
+	Convert.setShortValue(numFlds, tuple_offset, data);
+	fldOffset = new short[numFlds+1];
+	int pos = tuple_offset+2;  // start position for fldOffset[]
+	//sizeof short =2  +2: array siaze = numFlds +1 (0 - numFilds) and
+	//another 1 for fldCnt
+	fldOffset[0] = (short) ((numFlds +2) * 2 + tuple_offset);   
+	Convert.setShortValue(fldOffset[0], pos, data);
+	pos +=2;
+	short strCount =0;
+	short incr;
+	int i;
+	for (i=1; i<numFlds; i++)
+	{
+		switch(types[i-1].attrType) 
+		{
+		case AttrType.attrInteger:
+			incr = 4;
+			break;
+		case AttrType.attrReal:
+			incr =4;
+			break;
+		case AttrType.attrString:
+			incr = (short) (strSizes[strCount] +2);  //strlen in bytes = strlen +2
+			strCount++;
+			break;
+		case AttrType.attrGeom:
+			incr = (short) 4*8;
+			break;
+		default:
+			throw new InvalidTypeException (null, "TUPLE: TUPLE_TYPE_ERROR");
+		}
+		fldOffset[i]  = (short) (fldOffset[i-1] + incr);
+		Convert.setShortValue(fldOffset[i], pos, data);
+		pos +=2;
+	}
+	switch(types[numFlds -1].attrType) 
+	{
+	case AttrType.attrInteger:
+		incr = 4;
+		break;
+	case AttrType.attrReal:
+		incr =4;
+		break;
+	case AttrType.attrString:
+		incr =(short) ( strSizes[strCount] +2);  //strlen in bytes = strlen +2
+		break;
+	case AttrType.attrGeom:
+		incr = (short) 4*8;
+		break;
+	default:
+		throw new InvalidTypeException (null, "TUPLE: TUPLE_TYPE_ERROR");
+	}
+	fldOffset[numFlds] = (short) (fldOffset[i-1] + incr);
+	Convert.setShortValue(fldOffset[numFlds], pos, data);
+	tuple_length = fldOffset[numFlds] - tuple_offset;
+	if(tuple_length > max_size)
+		throw new InvalidTupleSizeException (null, "TUPLE: TUPLE_TOOBIG_ERROR");
 }
      
   
@@ -562,6 +547,87 @@ public void setHdr (short numFlds,  AttrType types[], short strSizes[])
      break;
    }
    System.out.println("]");
+
+ }
+ 
+ public void print(AttrType type[], List<String> operation)throws IOException 
+ {
+	 int i, val;
+	 float fval;
+	 String sval;
+	 SdoGeom geom;
+	 System.out.print("[");
+	 for (i=0; i< fldCnt-1; i++)
+	 {
+		 String operationType = operation.get(i);
+		 switch(type[i].attrType) 
+		 {
+		 case AttrType.attrInteger:
+			 val = Convert.getIntValue(fldOffset[i], data);
+			 System.out.print(val);
+			 break;
+		 case AttrType.attrReal:
+			 fval = Convert.getFloValue(fldOffset[i], data);
+			 System.out.print(fval);
+			 break;
+		 case AttrType.attrString:
+			 sval = Convert.getStrValue(fldOffset[i], data,fldOffset[i+1] - fldOffset[i]);
+			 System.out.print(sval);
+			 break;
+		 case AttrType.attrGeom:
+		 {
+			 geom = Convert.getSdoGeomValue(fldOffset[i], data, fldOffset[i+i] - fldOffset[i]);
+			 if(SelectObj.AREA.equalsIgnoreCase(operationType))
+			 {
+				 RectangleWrapper wrapper = new RectangleWrapper(geom);
+				 System.out.print(wrapper.getArea());
+			 }
+			 else
+			 {
+				 System.out.print(geom.toString()); 
+			 }
+		 }
+		 break;
+		 case AttrType.attrNull:
+		 case AttrType.attrSymbol:
+			 break;
+		 }
+		 System.out.print(", ");
+	 }
+	 String operationType = operation.get(fldCnt-1);
+	 switch(type[fldCnt-1].attrType) 
+	 {
+	 case AttrType.attrInteger:
+		 val = Convert.getIntValue(fldOffset[i], data);
+		 System.out.print(val);
+		 break;
+	 case AttrType.attrReal:
+		 fval = Convert.getFloValue(fldOffset[i], data);
+		 System.out.print(fval);
+		 break;
+	 case AttrType.attrString:
+		 sval = Convert.getStrValue(fldOffset[i], data,fldOffset[i+1] - fldOffset[i]);
+		 System.out.print(sval);
+		 break;
+	 case AttrType.attrGeom:
+	 {
+		 geom = Convert.getSdoGeomValue(fldOffset[i], data, fldOffset[i+i] - fldOffset[i]);
+		 if(SelectObj.AREA.equalsIgnoreCase(operationType))
+		 {
+			 RectangleWrapper wrapper = new RectangleWrapper(geom);
+			 System.out.print(wrapper.getArea());
+		 }
+		 else
+		 {
+			 System.out.print(geom.toString()); 
+		 }
+	 }
+	 break;
+	 case AttrType.attrNull:
+	 case AttrType.attrSymbol:
+		 break;
+	 }
+	 System.out.println("]");
 
  }
 
