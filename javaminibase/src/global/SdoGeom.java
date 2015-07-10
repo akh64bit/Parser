@@ -37,26 +37,26 @@ public class SdoGeom
             if(y1>y2)
             {
                 l=y1;
-                width = y1-y2;
+                height = y1-y2;
             }
             else if(y1==y2)
             {
                 if(y1>y3)
                 {
                     l=y1;
-                    width = y1-y3;
+                    height = y1-y3;
                 }
                 else//y3>y1, since y1=y2, it can't also be equal to y3, since then they will be a staright line!
                 {
                     l=y3;
-                    width = y3-y1;
+                    height = y3-y1;
                 }
                 
             }
             else//y1 < y2
             {
                 l=y2;
-                width=y2-y1;
+                height=y2-y1;
             }
             return l;
         }
@@ -67,25 +67,25 @@ public class SdoGeom
             if(x1<x2)
             {
                 l=x1;
-                height = x2-x1;
+                width = x2-x1;
             }
             else if(x1==x2)
             {
                 if(x1<x3)
                 {
                     l=x1;
-                    height = x3-x1;
+                    width = x3-x1;
                 }
                 else//x1>x3 since x1=x2, it can't also be equal to x3, since then they will be a straight line!
                 {
                     l=x3;
-                    height = x1-x3;
+                    width = x1-x3;
                 }
             }
             else//x1 < x2
             {
                 l=x2;
-                height=x1-x2;
+                width=x1-x2;
             }
             return l;
         }
